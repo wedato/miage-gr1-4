@@ -1,0 +1,165 @@
+= Contrôle Continu de Web-services, 2021-2022
+:title: Contrôle Continu de Web-services, 2021-2022
+:docyear: 2022
+
+
+== Consignes
+
+=== Dépôt GIT
+
+Vous devez cloner ce dépôt GIT au début de l'épreuve, et rendre le résultat de votre travail sur ce même dépôt avant la fin de l'épreuve (`git add` + `git commit` + `git push`).
+
+IMPORTANT: *Seule la branche `master` sera prise en compte pour l'évaluation finale.*
+Si vous créez d'autres branches de travail, pensez à fusionner vers la branche _master_ avant la fin de l'épreuve.
+
+
+=== Travail demandé
+
+- Vous devez développer un service REST correspondant à la description ci-dessous.
+Pour cela, vous devez :
+. *Implémenter les méthodes de la façade du modèle*, dans la classe `cc.modele.FacadeModele`. _Vous ne devez pas modifier la signature des méthodes proposées, ni ajouter de méthodes publiques ; vous pouvez ajouter des méthodes privées si vous le jugez utile._
+. *Implémenter le contrôleur* du service REST, dans la classe `cc.controleur.controleur`.
+. *Configurer la sécurité* du service REST, _avec authentification en mode Basic_ des utilisateurs du service. *_Sans cette configuration, votre service REST ne fonctionnera pas, et les tests du contrôleur échoueront !_*
+
+WARNING: La façade reçoit les mots de passe déjà encodés.
+
+
+=== Outils à disposition
+
+- Pour tester vos implémentations, vous avez à disposition deux classes de tests, disponibles dans `test/java` :
+* `modele.FacadeModeleTest` : tests fonctionnels pour le modèle.
+* `controleur.ControleurTest` : tests fonctionnels pour le contrôleur.
+* Pour lancer ces tests, vous pouvez, au choix :
+** Exécuter `Maven > Lifecycle > test`, pour exécuter tous les tests de l'application ;
+** Exécuter à la main chaque classe de tests, en cliquant sur la petite flèche verte située à côté du nom de la classe (quand vous êtes dans le fichier de cette classe).
+
+- Les classes métiers et les exceptions du modèle sont déjà développées. _Vous ne devez pas les modifier_.
+
+CAUTION: Pour les besoins de ce TP noté, les tests de la façade et du contrôleur ne font aucun _mocking_.
+Les tests font appel directement à certaines méthodes de création de données de la façade pour mettre en place les données avant d'effectuer le test proprement dit.
+Par conséquent, il est nécessaire d'implémenter les méthodes de création de données, dans la façade, afin que les tests de la façade et du contrôleur se déroulent correctement.
+
+
+=== Évaluation de votre rendu
+
+Votre rendu sera évalué à l'aide de tests fonctionnels, similaires aux tests qui vous sont fournis.
+_Nous utiliseront nos propres classes de tests pour l'évaluation ; il est donc inutile de modifier les classes de tests fournies._
+
+Bien entendu, nos tests se limiteront strictement aux fonctionnalités qui vous sont demandées ; ils ont pour objectif de valider l'adéquation de votre service REST avec les fonctionnalités attendues, en tenant compte des situations d'exception et des bonnes pratiques de conception d'un service REST.
+
+
+== Service REST à développer
+
+=== Contexte
+
+La direction de l'entreprise pour laquelle vous travaillez le rappelle à chaque réunion : il faut améliorer la productivité de l'entreprise !
+
+Dans votre équipe FAB (Fun Au Boulot), une idée a germé : mettre en réseau toutes les machines à café ou thé de l'entreprise, et permettre aux collaborateurs et collaboratrices de lancer la préparation d'une boisson chaude depuis leur ordinateur, afin d'aller le chercher seulement quand il est prêt.
+
+Vous avez en charge la réalisation du service REST back-end de gestion des machines.
+
+NOTE: Chaque machine ne produit qu'un seul type de boisson : soit du café, soit du thé.
+
+
+=== Rôles et identifiants
+
+Ce service sera utilisé par deux types de comptes, identifiés par un `login` et un `password` :
+
+- Les _drinkers_, amateurs et amatrices de café, avec un rôle `DRINKER`.
+- Les _fabulous_, membres de l'équipe FAB, avec un rôle `FABULOUS`.
+
+CAUTION: Au démarrage, le modèle de votre service devra contenir au moins un compte avec le rôle `FABULOUS` _(sorte de compte admin)_, avec pour _login_ `fabulous` et pour _password_ `CoffeeLover`.
+
+
+=== Opérations proposées par le service REST
+
+L'API de votre service REST doit proposer les opérations suivantes, en respectant les caractéristiques décrites, et en suivantles bonnes pratiques de conception d'un service REST :
+
+
+==== Gestion des comptes
+
+- `POST /api/drinkers` ->  *création d'un nouveau compte _drinker_*.
+* Ne nécessite aucune authentification.
+* *Requête* avec les _paramètres_ suivants :
+** `login` : identifiant du compte à créer. _L'identifiant ne doit pas être vide_.
+** `password` : mot de passe du compte à créer. _Le mot de passe ne doit pas être vide_.
+* *Réponse* :
+** `201` (Created) -> Le compte a bien été créé.
+** `400` (Bad request) -> Les informations fournies sont incorrectes.
+** `409` (Conflict) -> Un compte avec le même _login_ existe déjà (quelque soit le type de compte).
+
+- `GET /api/drinkers` -> *consultation de l'ensemble des comptes (_drinker_ et _fabulous_)*.
+* Nécessite d'être authentifié comme _fabulous_.
+* *Requête* sans contenu particulier.
+* *Réponse* :
+** `200` (OK) -> Le corps de la réponse doit contenir, au format JSON :
+*** la liste de tous les comptes _drinker_, avec pour chaque compte les informations suivantes : `login`, `type` (_drinker_ ou _fabulous_), `nbBoissonsBues`, _mais pas le password du compte_.
+
+- `GET /api/drinkers/{idDrinker}` -> *consultation d'un compte _drinker_*.
+* Nécessite d'être authentifié.
+* *Requête* sans contenu particulier.
+* *Réponse* :
+** `200` (OK) -> Le corps de la réponse doit contenir, au format JSON :
+*** les informations du compte _drinker_ : `login`, `type` (_drinker_ ou _fabulous_), `nbBoissonsBues`, _mais pas le password du compte_.
+
+- `PATCH /api/drinkers/{idDrinker}/type` -> *modification du type d'un compte (_drinker_ ou _fabulous_)*.
+* Nécessite d'être authentifié comme _fabulous_.
+* *Requête* dont le corps contient uniquement le type `drinker` ou `fabulous` (au format `text/plain`).
+* *Réponse* :
+** `200` (OK) -> Le type du compte a bien été modifié. Valable également si le compte avait déjà le bon type (pas d'erreur en cas de modifications répétées).
+** `400` (Bad request) -> Les informations fournies sont incorrectes.
+** `404` (Not found) -> Le compte n'existe pas.
+
+
+==== Gestion des machines
+
+- `POST /api/machines` -> *ajout d'une nouvelle machine disponible sur le réseau*.
+* Nécessite d'être authentifié comme _fabulous_.
+* *Requête* contenant, au format JSON, les informations suivantes :
+** `nom` : nom de la machine à ajouter. _Le nom de la machine ne doit pas être vide_.
+** `typeBoissons` : type de boissons que propose la machine. _Le type doit être soit "café", soit "thé"_.
+** `salle` : le nom de la salle dans laquelle se trouve la machine. _Le nom de la salle ne doit pas être vide, et doit être de la forme "1 lettre suivie de 2 chiffres" (par exemple "A38")_.
+* *Réponse* :
+** `201` (Created) -> La machine a bien été ajoutée.
+** `400` (Bad request) -> Si les informations fournies sont incorrectes.
+** `409` (Conflict) -> Une machine avec le même _nom_ existe déjà.
+
+- `GET /api/machines?salle={nomSalle}` -> *consultation de l'ensemble des machines disponibles sur le réseau*. Le filtre _salle_ est optionnel ; il permet de consulter uniquement les informations des machines d'une salle donnée. La salle peut ne pas exister, ou ne contenir aucune machine.
+* Ne nécessite aucune authentification.
+* *Requête* sans contenu particulier.
+* *Réponse* :
+** `200` (OK) -> Le corps de la réponse doit contenir, au format JSON :
+*** la liste de toutes les machines sur le réseau (ou uniquement les machines de la salle donnée, si le filtre _salle_ est présent), avec pour chaque machine les informations suivantes : `id`, `nom`, `typeBoissons`, `salle`.
+** `400` (Bad request) -> Si les informations fournies sont incorrectes (format de la salle incorrect).
+
+- `GET /api/machines/{idMachine}` -> *consultation du détail des boissons préparées par une machine*.
+* Ne nécessite aucune authentification pour consulter les informations générales de la machine ; nécessite d'être authentifié comme _fabulous_ pour consulter le détail des boissons préparées par la machine.
+* *Requête* sans contenu particulier.
+* *Réponse* :
+** `200` (OK) -> Le corps de la réponse doit contenir, au format JSON, les informations suivantes :
+*** les informations de la machine : `id`, `nom`, `type`, `salle`.
+*** si le compte authentifié est de type _fabulous_, alors la réponse doit également contenir :
+**** le nombre total de boissons préparées par la machine, dans un champ `nbBoissonsPreparees` ;
+**** la liste des boissons préparées, dans un champ `boissonsPreparees`, avec pour chaque boisson préparée les informations suivantes : `idDrinker`, `dateHeurePreparation`, `nbSucres`.
+** `404` (Not found) -> La machine n'existe pas.
+
+==== Gestion des boissons chaudes
+
+- `PUT /api/machines/{idMachine}/cafe` -> *lancement de la préparation d'un café sur une machine du réseau*.
+* Nécessite d'être authentifié comme _drinker_ ou _fabulous_.
+* *Requête* contenant, au format JSON, les informations suivantes :
+** `nbSucres` : nombre de sucres à ajouter dans la boisson.
+* *Réponse* :
+** `202` (Accepted) -> La boisson est en cours de préparation.
+** `400` (Bad request) -> Les informations fournies sont incorrectes.
+** `404` (Not found) -> La machine n'existe pas.
+** `418` (I'm a teapot) -> La machine ne peut préparer que du thé.
+
+- `PUT /api/machines/{idMachine}/the` -> *lancement de la préparation d'un thé sur une machine du réseau*.
+* Nécessite d'être authentifié comme _drinker_ ou _fabulous_.
+* *Requête* contenant, au format JSON, les informations suivantes :
+** `nbSucres` : nombre de sucres à ajouter dans la boisson.
+* *Réponse* :
+** `202` (Accepted) -> La boisson est en cours de préparation.
+** `400` (Bad request) -> Les informations fournies sont incorrectes, _ou la machine n'est pas une machine à thé_.
+** `404` (Not found) -> La machine n'existe pas.
