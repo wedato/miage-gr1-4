@@ -204,7 +204,10 @@ public class FacadeModele {
      */
     public Machine getMachineById(Integer idMachine) throws MachineInconnueException {
 
-        return null;
+        Optional<Machine> optionalMachine = listeMachine.stream().filter(machine -> machine.getId().equals(idMachine)).findAny();
+        if (optionalMachine.isEmpty())
+            throw new MachineInconnueException();
+        return optionalMachine.get();
     }
 
     /**
@@ -215,8 +218,10 @@ public class FacadeModele {
      * @throws MachineInconnueException si aucune machine n'existe avec ce nom
      */
     public Machine getMachineByNom(String nom) throws MachineInconnueException {
-        // TODO
-        return null;
+        Optional<Machine> optionalMachine = listeMachine.stream().filter(machine -> machine.getNom().equals(nom)).findAny();
+        if (optionalMachine.isEmpty())
+            throw new MachineInconnueException();
+        return optionalMachine.get();
     }
 
     /**
@@ -233,8 +238,16 @@ public class FacadeModele {
      * @throws NbSucresIncorrectException  si le nombre de sucres est incorrect
      */
     public Boisson preparerBoisson(Integer idMachine, String typeBoisson, Integer idCompte, Integer nbSucres) throws CompteInconnuException, MachineInconnueException, TypeBoissonInconnuException, NbSucresIncorrectException {
-        // TODO
-        return null;
+       Compte compte = getCompteById(idCompte);
+       Machine machine = getMachineById(idMachine);
+       if (nbSucres < 0)
+           throw new NbSucresIncorrectException();
+       Boisson boisson = machine.preparerBoisson(compte,nbSucres);
+       if (!TypeBoisson.getAllTypes().contains(machine.getTypeBoissons()))
+           throw new TypeBoissonInconnuException();
+
+
+       return boisson;
     }
 
 }
