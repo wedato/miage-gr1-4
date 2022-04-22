@@ -6,7 +6,10 @@ import cc.modele.data.machines.Machine;
 import cc.modele.exceptions.*;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -16,6 +19,10 @@ import java.util.Collection;
 public class FacadeModele {
 
     // TODO compléter la classe et les méthodes
+
+//    List<Compte> lesDrinkers = new ArrayList<>();
+//    List<Compte> lesFabulous = new ArrayList<>();
+    List<Compte> tousLesComptes = new ArrayList<>();
 
     /**
      * Créer un nouveau compte de type "drinker".
@@ -27,8 +34,17 @@ public class FacadeModele {
      * @throws InformationsIncompletesException si les informations fournies sont incomplètes (login ou password vide)
      */
     public Compte creerCompteDrinker(String login, String password) throws InformationsIncompletesException, CompteDejaExistantException {
-        // TODO
-        return null;
+
+        if (login == null || password == null || login.isBlank() || password.isBlank())
+            throw new InformationsIncompletesException();
+
+        Optional<Compte> drinkerExistant = tousLesComptes.stream().filter(compte -> compte.getLogin().equals(login)).findAny();
+        if (drinkerExistant.isPresent())
+            throw new CompteDejaExistantException();
+
+        Compte drinker = new Compte(login,password,"drinker");
+        tousLesComptes.add(drinker);
+        return drinker;
     }
 
     /**
@@ -41,8 +57,16 @@ public class FacadeModele {
      * @throws InformationsIncompletesException si les informations fournies sont incomplètes (login ou password vide)
      */
     public Compte creerCompteFabulous(String login, String password) throws InformationsIncompletesException, CompteDejaExistantException {
-        // TODO
-        return null;
+        if (login == null || password == null || login.isBlank() || password.isBlank())
+            throw new InformationsIncompletesException();
+
+        Optional<Compte> fabulousExistant = tousLesComptes.stream().filter(compte -> compte.getLogin().equals(login)).findAny();
+        if (fabulousExistant.isPresent())
+            throw new CompteDejaExistantException();
+
+        Compte fabulous = new Compte(login,password,"fabulous");
+        tousLesComptes.add(fabulous);
+        return fabulous;
     }
 
     /**
