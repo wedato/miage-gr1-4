@@ -1,9 +1,12 @@
 package cc.modele;
 
 import cc.modele.data.boissons.Boisson;
+import cc.modele.data.boissons.TypeBoisson;
 import cc.modele.data.comptes.Compte;
+import cc.modele.data.comptes.TypeCompte;
 import cc.modele.data.machines.Machine;
 import cc.modele.exceptions.*;
+import org.apache.tomcat.util.codec.binary.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,9 +23,8 @@ public class FacadeModele {
 
     // TODO compléter la classe et les méthodes
 
-//    List<Compte> lesDrinkers = new ArrayList<>();
-//    List<Compte> lesFabulous = new ArrayList<>();
     List<Compte> tousLesComptes = new ArrayList<>();
+    List<Machine> listeMachine = new ArrayList<>();
 
     /**
      * Créer un nouveau compte de type "drinker".
@@ -75,8 +77,8 @@ public class FacadeModele {
      * @return une collection de tous les comptes
      */
     public Collection<Compte> getAllComptes() {
-        // TODO
-        return null;
+
+        return tousLesComptes;
     }
 
     /**
@@ -87,8 +89,11 @@ public class FacadeModele {
      * @throws CompteInconnuException si aucun compte n'existe avec cet identifiant
      */
     public Compte getCompteById(Integer idCompte) throws CompteInconnuException {
-        // TODO
-        return null;
+
+        Optional<Compte> optionalCompte = tousLesComptes.stream().filter(compte -> compte.getId().equals(idCompte)).findAny();
+        if (optionalCompte.isEmpty())
+            throw new CompteInconnuException();
+        return optionalCompte.get();
     }
 
     /**
@@ -99,8 +104,10 @@ public class FacadeModele {
      * @throws CompteInconnuException si aucun compte n'existe avec ce login
      */
     public Compte getCompteByLogin(String login) throws CompteInconnuException {
-        // TODO
-        return null;
+        Optional<Compte> optionalCompte = tousLesComptes.stream().filter(compte -> compte.getLogin().equals(login)).findAny();
+        if (optionalCompte.isEmpty())
+            throw new CompteInconnuException();
+        return optionalCompte.get();
     }
 
     /**
@@ -113,8 +120,15 @@ public class FacadeModele {
      * @throws TypeCompteInconnuException si le nouveau type de compte n'existe pas
      */
     public Compte modifierTypeCompte(Integer idCompte, String nouveauType) throws TypeCompteInconnuException, CompteInconnuException {
-        // TODO
-        return null;
+
+        if (!TypeCompte.getAllTypes().contains(nouveauType))
+            throw new TypeCompteInconnuException();
+
+        Compte compte = getCompteById(idCompte);
+        int index = tousLesComptes.indexOf(compte);
+        compte.setType(nouveauType);
+        tousLesComptes.set(index,compte);
+        return compte;
     }
 
     /**
@@ -130,8 +144,23 @@ public class FacadeModele {
      * @throws FormatSalleIncorrectException    si le format du nom de la salle est incorrect (doit être de la forme "1 lettre suivie de 2 chiffres", p.ex. "A38")
      */
     public Machine ajouterMachine(String nom, String typeBoissons, String salle) throws MachineDejaExistanteException, InformationsIncompletesException, TypeBoissonInconnuException, FormatSalleIncorrectException {
-        // TODO
-        return null;
+        if (nom == null || typeBoissons == null || salle == null || salle.isBlank() || nom.isBlank() || typeBoissons.isBlank())
+            throw new InformationsIncompletesException();
+        if (!TypeBoisson.getAllTypes().contains(typeBoissons))
+            throw new TypeBoissonInconnuException();
+        char charArray[] = salle.toCharArray();
+        if (Character.isDigit(charArray[0]) || salle.length() != 3)
+            throw new FormatSalleIncorrectException();
+
+
+
+
+        Optional<Machine> optionalMachine = listeMachine.stream().filter(machine -> machine.getNom().equals(nom)).findAny();
+        if (optionalMachine.isPresent())
+            throw new MachineDejaExistanteException();
+        Machine machine = new Machine(nom, typeBoissons, salle);
+        listeMachine.add(machine);
+        return machine;
     }
 
     /**
@@ -140,8 +169,8 @@ public class FacadeModele {
      * @return une collection de toutes les machines
      */
     public Collection<Machine> getAllMachines() {
-        // TODO
-        return null;
+
+        return listeMachine;
     }
 
     /**
@@ -152,8 +181,18 @@ public class FacadeModele {
      * @throws FormatSalleIncorrectException si le format du nom de la salle est incorrect (doit être de la forme "1 lettre suivie de 2 chiffres", p.ex. "A38")
      */
     public Collection<Machine> getAllMachinesBySalle(String salle) throws FormatSalleIncorrectException {
-        // TODO
-        return null;
+
+        char charArray[] = salle.toCharArray();
+        if (Character.isDigit(charArray[0]) || salle.length() != 3)
+            throw new FormatSalleIncorrectException();
+
+        List<Machine> machinesDeLaSalle = new ArrayList<>();
+        for (Machine machine : listeMachine){
+            if (machine.getSalle().equals(salle))
+                machinesDeLaSalle.add(machine);
+
+        }
+        return machinesDeLaSalle;
     }
 
     /**
@@ -164,7 +203,7 @@ public class FacadeModele {
      * @throws MachineInconnueException si aucune machine n'existe avec cet identifiant
      */
     public Machine getMachineById(Integer idMachine) throws MachineInconnueException {
-        // TODO
+
         return null;
     }
 

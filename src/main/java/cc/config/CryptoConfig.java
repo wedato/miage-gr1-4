@@ -23,6 +23,7 @@ public class CryptoConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/api/drinkers").permitAll()
+                .antMatchers(HttpMethod.GET,"/api/drinkers").permitAll()
                 .and().httpBasic()
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
